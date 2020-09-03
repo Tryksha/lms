@@ -227,53 +227,132 @@ echo '
 
 //cod for retrieving chart data
 $r0 = "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));";
-$r1= "SELECT LOGINTIME, COUNT(USER_ID) FROM user_log WHERE DATE(LOGINTIME)>= CURDATE() - INTERVAL 7 DAY  GROUP BY DATE(LOGINTIME);";
-$r2 = "SELECT COUNT(USER_ID) FROM user_log WHERE DATE(LOGINTIME)=CURDATE()";
-$r3 = "DELETE FROM user_log WHERE LOGINTIME < CURDATE() - INTERVAL 8 DAY";
-$res1=mysqli_query($conn,$r0);
-$res1=mysqli_query($conn,$r1);
-$res2=mysqli_query($conn,$r2);
-$res3=mysqli_query($conn,$r3);
-$row2=mysqli_fetch_array($res2);
-$chart_data='';
-
-while($row=mysqli_fetch_array($res1))
-{
-    $time= strtotime($row['LOGINTIME']);
-    $ct=$row['COUNT(USER_ID)'];
-
-    echo $row2['COUNT(USER_ID)'] .'</h4>';
-
-    $chart_data .="{ date:'".date('d.m.Y',$time)."', user:'".$ct."'},";
-}
+ $r1= "SELECT  COURSE_ID, COUNT(COURSE_ID) FROM course_log GROUP BY COURSE_ID";
+ $r2 = "SELECT COUNT(COURSE_ID) FROM course_log ";
+ $res1=mysqli_query($conn,$r0);
+ $res1=mysqli_query($conn,$r1);
+ $res2=mysqli_query($conn,$r2);
+ $row=mysqli_fetch_array($res2);
+  $chart_data='';
+  $yaxis='';
+ while($row=mysqli_fetch_array($res1))
+ {
+ $ct=$row['COURSE_ID'];
+ $ctr=$row['COUNT(COURSE_ID)'];
+    $chart_data .="$ct,";
+    $yaxis.="$ctr,";
+ }
+ var_export("[$yaxis]", true);
+ var_export("[$chart_data]", true);
 ?>
+<div class="trend">
+<div class="xaxis"><p>try</p></div>
+<canvas id="myChart" class="canvas" ></canvas><br>
+<div class="yaxis"><b>try 2</b></div>
+</div>
 
+
+<style>
+  .canvas{
+    height:250px !important;
+    width:600px !important;
+    flex-direction: row ;
+    margin-left: 6%;
+    align-items: flex-start;
+    flex-direction: row;
+    flex-basis:80%;
+  }
+  .trend{
+    height:300px;
+    width:800px;
+    background: yellow;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+  }
+.xaxis{
+  padding: 70px 0px;
+  
+  background: grey;
+  flex-direction: row;
+  flex-wrap: wrap;
+  flex-basis: 20%;
+ 
+}
+p{
+  transform: rotate(-90deg);
+}
+
+.yaxis{
+  
+  
+  width:60%;
+  background : purple;
+  flex-direction: column;
+  
+ 
+}
+</style>
 <script>
-    new Morris.Line({
-
-        element: 'chart',
-        data: [<?php echo $chart_data;?>],
-        xkey: ['date'],
-        ykeys: ['user'],
-        labels: ['Users'],
-        resize: true,
-        parseTime: false
-
-    });
+var ctx = document.getElementById("myChart");
+var myChart = new Chart(ctx, {
+  
+  type: 'bar',
+  data: {
+    labels: [<?php echo $chart_data;?>],
+    datasets: [{
+      label: '# course',
+      data: [<?php echo $yaxis; ?>],
+      backgroundColor: [
+        'rgba(255, 99, 132, 0.2)',
+        'rgba(54, 162, 235, 0.2)',
+        'rgba(255, 206, 86, 0.2)',
+        'rgba(75, 192, 192, 0.2)',
+        'rgba(153, 102, 255, 0.2)',
+        'rgba(255, 159, 64, 0.2)',
+        'rgba(255, 99, 132, 0.2)',
+        'rgba(54, 162, 235, 0.2)',
+        'rgba(255, 206, 86, 0.2)',
+        'rgba(75, 192, 192, 0.2)',
+        'rgba(153, 102, 255, 0.2)',
+        'rgba(255, 159, 64, 0.2)'
+      ],
+      borderColor: [
+        'rgba(255,99,132,1)',
+        'rgba(54, 162, 235, 1)',
+        'rgba(255, 206, 86, 1)',
+        'rgba(75, 192, 192, 1)',
+        'rgba(153, 102, 255, 1)',
+        'rgba(255, 159, 64, 1)',
+        'rgba(255,99,132,1)',
+        'rgba(54, 162, 235, 1)',
+        'rgba(255, 206, 86, 1)',
+        'rgba(75, 192, 192, 1)',
+        'rgba(153, 102, 255, 1)',
+        'rgba(255, 159, 64, 1)'
+      ],
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      xAxes: [{
+        ticks: {
+          maxRotation: 90,
+          minRotation: 80
+        }
+      }],
+      yAxes: [{
+        ticks: {
+          beginAtZero: true
+        }
+      }]
+    }
+  }
+});
 </script>
-<!--    <script>
-        new Morris.Line({
-
-            element: 'chart',
-            data: [ /*echo $chart_data;*/?>],
-            xkey: ['date'],
-            ykeys: ['user'],
-            labels: ['Users'],
-            resize: true,
-            parseTime: false
-
-        });
-    </script>-->
 
 </body>
 </html>

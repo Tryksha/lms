@@ -26,7 +26,7 @@ echo '
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="icon" type="image/png" href="assets/img/favicon.ico">
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 <style>
 	*box
 	{
@@ -244,12 +244,165 @@ echo'</strong></span><br></h4>
 
     </div>
   </div>
-
+  </div>
+<div class="container">
+  <div class="ylabel"><p>Number of Users</p></div>
+  <canvas id="line-chart" class="canvas"></canvas>
+  <div class= "xlabel">Time</div>
+  </div>
+  <br><br><br><br>
 <!--page content end-->
 
 ';
+$r0 = "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));";
+$r1= "SELECT LOGINTIME, COUNT(DISTINCT USER_ID) FROM user_log WHERE DATE(LOGINTIME)>= CURDATE() - INTERVAL 7 DAY  GROUP BY DATE(LOGINTIME);";
+$r2 = "SELECT COUNT(DISTINCT USER_ID) FROM user_log WHERE DATE(LOGINTIME)=CURDATE()";
+$res1=mysqli_query($conn,$r0);
+$res1=mysqli_query($conn,$r1);
+$res2=mysqli_query($conn,$r2);
+$row2=mysqli_fetch_array($res2);
+$chart_data='';
+$log='';
+     while($row=mysqli_fetch_array($res1))
+    {
+    $time= strtotime($row['LOGINTIME']);
+    $ct=$row['COUNT(DISTINCT USER_ID)'];
+
+  
+    $log .= " '".date('d-m-y',$time)."', ";
+    $chart_data .="$ct,";
+    }
+var_export("[$chart_data]", true);
+var_export("[$log]",true);
+
+
+//retrieving second chart of course completion
+$rt0 = "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));";
+$rt1 = "SELECT CTIME, COUNT(DISTINCT USER_ID) FROM course_log WHERE DATE(CTIME)>= CURDATE() - INTERVAL 7 DAY  GROUP BY DATE(CTIME);";
+$rt2 = "SELECT COUNT(DISTINCT USER_ID) FROM course_log WHERE DATE(CTIME)=CURDATE()";
+
+$rest1=mysqli_query($conn,$rt0);
+$rest1=mysqli_query($conn,$rt1);
+$rest2=mysqli_query($conn,$rt2);
+
+$rowt2=mysqli_fetch_array($rest2);
+$chart_data2='';
+$logt='';
+    while($rowt=mysqli_fetch_array($rest1))
+    {
+    $timet= strtotime($rowt['CTIME']);
+    $ctt=$rowt['COUNT(DISTINCT USER_ID)'];
+
+    $logt .= " '".date('d-m-y',$timet)."', ";
+    $chart_data2 .="$ctt,";
+    }
+    
+    
+  var_export("[$chart_data2]", true);
+
+
+  echo ' 
+  
+
+';
+
+  
 ?>
 
+  <style>
+  .canvas{
+    height:400px !important;
+      width:600px !important;
+      flex-direction: row ;
+      margin-top:2%;
+      align-items: flex-start;
+      flex-direction: row;
+      flex-basis:80%;
+    
+    
+  }
+  
+  .container{
+    margin-left: 35px;
+    height: 67%;
+    margin-top:0px;	
+    margin-right: 5%;
+      display: flex;
+      flex-wrap: wrap;
+    background:white;
+    margin-right:100px;
+    border: solid 2px #d9d9d9;
+  border-radius: 6px;
+      
+    
+  }
+  
+  .ylabel{
+  
+   padding: 190px 0px;
+   
+   flex-direction: column;
+   padding-bottom:40px;
+   flex-basis: 15%;
+  flex-wrap: wrap; 
+   
+  }
+  .ylabel p{
+    transform: rotate(-90deg);
+    font-size: 20px;
+  }
+  .xlabel{
+   
+    flex-direction: column;
+    justify-content:flex-end;
+    flex:3;
+    align-self:flex-end;
+    margin-right:;
+    padding-left:70px;
+   text-align:center;
+   font-size: 20px;	
+   margin-bottom:1%;
+  
+  }
+
+  
+  </style>
+  <script>
+              new Chart(document.getElementById("line-chart"), {
+                   type: "line",
+                   data: {
+                   labels: [<?php echo $log; ?>],
+                   datasets: [
+                   {
+                      data: [<?php echo $chart_data2;?>],
+                      label: "Users",
+                      borderColor: "#90774f",
+                      backgroundColor: "hsla(37, 97%, 50%, 0.52)",
+                      showLine: true,
+                      fill: true,
+                      order: 2,
+                   },
+                   {
+                      data: [<?php echo $chart_data;?>],
+                      label: "Course",
+                      borderColor: "#1d3056",
+                      backgroundColor: "hsla(220, 77%, 53%, 0.48)",
+                      fill: true,
+                      order: 1,
+                   },
+                  ],
+                },
+                options: {
+              responsive: true,
+              maintainAspectRatio: false,
+                    title: {
+                      display: true,
+                      text: 'Total Login and Course Completed',
+                      fontSize: 32,
+                  },
+                },
+              });
+            </script>
 <script src="Profile script.js"></script>
 <script>
     var fgImage=null;
@@ -307,6 +460,12 @@ echo'</strong></span><br></h4>
     });
 </script>
 
+  
+       
+     
+         
+       
+          
 
 
 

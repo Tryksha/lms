@@ -28,7 +28,7 @@ echo'
 		 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 
 		<style>
 
@@ -220,64 +220,120 @@ echo '
 					box-shadow: 7px 15px 104px -20px rgba(0,0,0,0.75);
 				}
 				</style>
-				<br><br><br><br>
-				<div class="cht2"id="charts"></div>
-				<br><br><h4 style="text-align: center; color: #1d3056"> Total No. Of Users Login Today :
+				<br>
 ';
 
 //cod for retrieving chart data
 $r0 = "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));";
-$r1= "SELECT LOGINTIME, COUNT(USER_ID) FROM user_log WHERE DATE(LOGINTIME)>= CURDATE() - INTERVAL 7 DAY  GROUP BY DATE(LOGINTIME);";
-$r2 = "SELECT COUNT(USER_ID) FROM user_log WHERE DATE(LOGINTIME)=CURDATE()";
-$r3 = "DELETE FROM user_log WHERE LOGINTIME < CURDATE() - INTERVAL 8 DAY";
+$r1= "SELECT LOGINTIME, COUNT(DISTINCT USER_ID) FROM user_log WHERE DATE(LOGINTIME)>= CURDATE() - INTERVAL 7 DAY  GROUP BY DATE(LOGINTIME);";
+$r2 = "SELECT COUNT(DISTINCT USER_ID) FROM user_log WHERE DATE(LOGINTIME)=CURDATE()";
 $res1=mysqli_query($conn,$r0);
 $res1=mysqli_query($conn,$r1);
 $res2=mysqli_query($conn,$r2);
-$res3=mysqli_query($conn,$r3);
 $row2=mysqli_fetch_array($res2);
 $chart_data='';
+$log='';
+     while($row=mysqli_fetch_array($res1))
+    {
+    $time= strtotime($row['LOGINTIME']);
+    $ct=$row['COUNT(DISTINCT USER_ID)'];
 
-while($row=mysqli_fetch_array($res1))
-	{
-	$time= strtotime($row['LOGINTIME']);
-	$ct=$row['COUNT(USER_ID)'];
+  
+    $log .= " '".date('d-m-y',$time)."', ";
+    $chart_data .="$ct,";
+    }
+var_export("[$chart_data]", true);
+var_export("[$log]",true);
 
-	echo $row2['COUNT(USER_ID)'] .'</h4>';
 
-	$chart_data .="{ date:'".date('d.m.Y',$time)."', user:'".$ct."'},";
-	}
 ?>
-
+<div class="container">
+  <div class="ylabel"><p>Number of Users</p></div>
+  <canvas id="line-chart" class="canvas"></canvas>
+  <div class= "xlabel">Time</div>
+  </div>
+  <style>
+ .canvas{
+	 		margin-top:3%;
+          height:400px !important;
+            width:600px !important;
+            flex-direction: row ;
+            
+            align-items: flex-start;
+            flex-direction: row;
+            flex-basis:80%;
+          
+          
+        }
+        
+        .container{
+          margin-left: 335px;
+          height: 67%;	
+          margin-right: 5%;
+            display: flex;
+            flex-wrap: wrap;
+            -webkit-box-shadow: -4px -16px 129px -30px rgba(0,0,0,0.75);
+-moz-box-shadow: -4px -16px 129px -30px rgba(0,0,0,0.75);
+box-shadow: -4px -16px 129px -30px rgba(0,0,0,0.75);
+            
+          
+        }
+        
+        .ylabel{
+        
+         padding: 250px 0px;
+         
+         flex-direction: column;
+         padding-bottom:40px;
+         flex-basis: 15	%;
+        flex-wrap: wrap; 
+         
+        }
+        .ylabel p{
+          transform: rotate(-90deg);
+          font-size: 20px;
+        }
+        .xlabel{
+         
+          flex-direction: column;
+          justify-content:flex-end;
+          flex:3;
+          align-self:flex-end;
+          margin-right:;
+          padding-left:70px;
+         text-align:center;
+         font-size: 20px;	
+         margin-bottom:1%;
+        
+        }
+</style>
 <script>
-    new Morris.Line({
-
-        element: 'chart',
-        data: [<?php echo $chart_data;?>],
-        xkey: ['date'],
-        ykeys: ['user'],
-        labels: ['Users',],
-        lineColors: ['#90774f'],
-        pointFillColors: ['#90774f'],
-        gridTextColor: ['#1d3056'],
-        gridTextWeight: ['bold'],
-        resize: true,
-        parseTime: false
-
-    });
+new Chart(document.getElementById("line-chart"), {
+                   type: "line",
+                   data: {
+                   labels: [<?php echo $log; ?>],
+                   datasets: [
+                  
+                   {
+                      data: [<?php echo $chart_data;?>],
+                      label: "Users",
+                      borderColor: "#1d3056",
+                      backgroundColor: "hsla(220, 77%, 53%, 0.48)",
+                      fill: true,
+                      order: 1,
+                   },
+                  ],
+                },
+                options: {
+              responsive: true,
+              maintainAspectRatio: false,
+                    title: {
+                      display: true,
+                      text: 'TOTAL USER LOGIN',
+                      fontSize: 32,
+                  },
+                },
+              });
 </script>
-<!--    <script>
-        new Morris.Line({
-
-            element: 'chart',
-            data: [ /*echo $chart_data;*/?>],
-            xkey: ['date'],
-            ykeys: ['user'],
-            labels: ['Users'],
-            resize: true,
-            parseTime: false
-
-        });
-    </script>-->
-
 </body>
 </html>

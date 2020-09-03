@@ -230,41 +230,197 @@ echo '
 ';
 
 //cod for retrieving chart data
-$r0 = "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));";
-$r1= "SELECT LOGINTIME, COUNT(USER_ID) FROM user_log WHERE DATE(LOGINTIME)>= CURDATE() - INTERVAL 7 DAY  GROUP BY DATE(LOGINTIME);";
-$r2 = "SELECT COUNT(USER_ID) FROM user_log WHERE DATE(LOGINTIME)=CURDATE()";
-$r3 = "DELETE FROM user_log WHERE LOGINTIME < CURDATE() - INTERVAL 8 DAY";
-$res1=mysqli_query($conn,$r0);
-$res1=mysqli_query($conn,$r1);
-$res2=mysqli_query($conn,$r2);
-$res3=mysqli_query($conn,$r3);
-$row2=mysqli_fetch_array($res2);
-$chart_data='';
+$conn = mysqli_connect("localhost","root","","mylms");
+    $r0 = "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));";
+    $r1= "SELECT LOGINTIME, COUNT(DISTINCT USER_ID) FROM user_log WHERE DATE(LOGINTIME)>= CURDATE() - INTERVAL 7 DAY  GROUP BY DATE(LOGINTIME);";
+    $r2 = "SELECT COUNT(DISTINCT USER_ID) FROM user_log WHERE DATE(LOGINTIME)=CURDATE()";
+    $res1=mysqli_query($conn,$r0);
+    $res1=mysqli_query($conn,$r1);
+    $res2=mysqli_query($conn,$r2);
+    $row2=mysqli_fetch_array($res2);
+    $chart_data='';
+    $log='';
+         while($row=mysqli_fetch_array($res1))
+        {
+        $time= strtotime($row['LOGINTIME']);
+        $ct=$row['COUNT(DISTINCT USER_ID)'];
+    
+      
+        $log .= " '".date('d-m-y',$time)."', ";
+        $chart_data .="$ct,";
+        }
+    var_export("[$chart_data]", true);
+    var_export("[$log]",true);
+    
+    
+    //retrieving second chart of course completion
+    $rt0 = "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));";
+    $rt1 = "SELECT CTIME, COUNT(DISTINCT USER_ID) FROM course_log WHERE DATE(CTIME)>= CURDATE() - INTERVAL 7 DAY  GROUP BY DATE(CTIME);";
+    $rt2 = "SELECT COUNT(DISTINCT USER_ID) FROM course_log WHERE DATE(CTIME)=CURDATE()";
+    
+    $rest1=mysqli_query($conn,$rt0);
+    $rest1=mysqli_query($conn,$rt1);
+    $rest2=mysqli_query($conn,$rt2);
+    
+    $rowt2=mysqli_fetch_array($rest2);
+    $chart_data2='';
+    $logt='';
+        while($rowt=mysqli_fetch_array($rest1))
+        {
+        $timet= strtotime($rowt['CTIME']);
+        $ctt=$rowt['COUNT(DISTINCT USER_ID)'];
+    
+        $logt .= " '".date('d-m-y',$timet)."', ";
+        $chart_data2 .="$ctt,";
+        }
+        
+        
+      var_export("[$chart_data2]", true);
 
-while($row=mysqli_fetch_array($res1))
-{
-    $time= strtotime($row['LOGINTIME']);
-    $ct=$row['COUNT(USER_ID)'];
-    $chart_data .="{ date:'".date('d-m-Y',$time)."', user:'".$ct."'},";
-}
+      
+
+
 ?>
+  
+        <div class="container">
+        <div class="select-box">
+        <label for="cars">Filter by time:</label>
+        <select class="duration" name="time" id="time">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="custom">Custom</option>
+        </select>
+        </div>
+        
+        <div class="ylabel"><p>Number of Users</p></div>
+        <canvas id="line-chart" class="canvas"></canvas>
+        <div class= "xlabel">Time</div>
+        </div>
+        <style>
+        .canvas{
+          height:400px !important;
+            width:600px !important;
+            flex-direction: row ;
+            
+            align-items: flex-start;
+            flex-direction: row;
+            flex-basis:80%;
+          
+          
+        }
+        
+        .container{
+          margin-left: 335px;
+          height: 67%;	
+          margin-right: 5%;
+            display: flex;
+            flex-wrap: wrap;
+            -webkit-box-shadow: -4px -16px 129px -30px rgba(0,0,0,0.75);
+-moz-box-shadow: -4px -16px 129px -30px rgba(0,0,0,0.75);
+box-shadow: -4px -16px 129px -30px rgba(0,0,0,0.75);
+            
+          
+        }
+        
+        .ylabel{
+        
+         padding: 190px 0px;
+         
+         flex-direction: column;
+         padding-bottom:40px;
+         flex-basis: 13%;
+        flex-wrap: wrap; 
+         
+        }
+        .ylabel p{
+          transform: rotate(-90deg);
+          font-size: 20px;
+        }
+        .xlabel{
+         
+          flex-direction: column;
+          justify-content:flex-end;
+          flex:3;
+          align-self:flex-end;
+          margin-right:;
+          padding-left:70px;
+         text-align:center;
+         font-size: 20px;	
+         margin-bottom:1%;
+        
+        }
+        .select-box{
+          flex-direction:column;
+          height:30px !important;
+        
+          
+          padding-left:75%;
+          margin-top: 0.5%;
+          
 
-<script>
-    new Morris.Line({
+          
+        }
+       .filter{
+        margin-left: 335px;
+          height: 67%;	
+          margin-right: 5%;
+            
+            
+           
+            
+       }
+        
+        </style>
+        <div class="filter">
+       <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST">
+        <p>Filter Chart by date</p>
+        <select class="duration" name="time" id="duration">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+           </select>
+        <input type="submit" id="submit">
+        </form>
+        <?php
+          if(isset($_POST['submit'])){
+            echo '<h1>chai lelo chai</h1>';
+          }
 
-        element: 'chart',
-        data: [<?php echo $chart_data;?>],
-        xkey: ['date'],
-        ykeys: ['user'],
-        labels: ['Users',],
-        lineColors: ['#90774f'],
-        pointFillColors: ['#90774f'],
-        gridTextColor: ['#1d3056'],
-        gridTextWeight: ['bold'],
-        resize: true,
-        parseTime: false
-
-    });
-</script>
-</body>
-</html>
+        ?>
+        </div>  
+       
+            <script>
+              new Chart(document.getElementById("line-chart"), {
+                   type: "line",
+                   data: {
+                   labels: [<?php echo $log; ?>],
+                   datasets: [
+                   {
+                      data: [<?php echo $chart_data2;?>],
+                      label: "Users",
+                      borderColor: "#3e95cd",
+                     
+                      showLine: true,
+                      fill: true,
+                      order: 1,
+                   },
+                   {
+                      data: [<?php echo $chart_data;?>],
+                      label: "Course",
+                      borderColor: "#8e5ea2",
+                      
+                      fill: true,
+                      order: 2,
+                   },
+                  ],
+                },
+                options: {
+              responsive: true,
+              maintainAspectRatio: false,
+                    title: {
+                      display: true,
+                  },
+                },
+              });
+            </script>

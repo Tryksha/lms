@@ -29,7 +29,7 @@ echo'
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
-
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 		<style>
 
 			/* Style the list */
@@ -220,9 +220,7 @@ echo '
 					box-shadow: 7px 15px 104px -20px rgba(0,0,0,0.75);
 				}
 				</style>
-				<br><br><br><br>
-				<div class="cht2"id="charts"></div>
-				<br><br><h4 style="text-align: center; color: #1d3056"> Total No. Of Users Login Today :
+				<br><br>
 ';
 
 //cod for retrieving chart data
@@ -245,51 +243,63 @@ $r0 = "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
  var_export("[$yaxis]", true);
  var_export("[$chart_data]", true);
 ?>
-<div class="trend">
-<div class="xaxis"><p>try</p></div>
-<canvas id="myChart" class="canvas" ></canvas><br>
-<div class="yaxis"><b>try 2</b></div>
-</div>
+<div class="container">
+        <div class="ylabel"><p>Users</p></div>
+        <canvas id="line-chart" class="canvas"></canvas>
+        <div class= "xlabel">Time</div>
+        </div>
+        <br><br><br><br>
 
+<div class="trend">
+<div class="yaxis"><p>USERS	</p></div>
+<canvas id="myChart" class="canvas" ></canvas><br>
+<div class="xaxis">COURSES</div>
+</div>
+<br><br><br><br>
+        
 
 <style>
   .canvas{
-    height:250px !important;
-    width:600px !important;
+	margin-top:4%;
+    height:400px !important;
+	width:600px !important;
     flex-direction: row ;
-    margin-left: 6%;
+    
     align-items: flex-start;
     flex-direction: row;
     flex-basis:80%;
   }
   .trend{
-    height:300px;
-    width:800px;
-    background: yellow;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
+	margin-left: 335px;
+          height: 67%;	
+          margin-right: 1%;
+            display: flex;
+            flex-wrap: wrap;
+            -webkit-box-shadow: -4px -16px 129px -30px rgba(0,0,0,0.75);
+            -moz-box-shadow: -4px -16px 129px -30px rgba(0,0,0,0.75);
+            box-shadow: -4px -16px 129px -30px rgba(0,0,0,0.75);
   }
-.xaxis{
-  padding: 70px 0px;
+.yaxis{
+  padding: 200px 0px;
   
-  background: grey;
+  font-size:20px;
   flex-direction: row;
   flex-wrap: wrap;
-  flex-basis: 20%;
+  flex-basis: 10%;
  
 }
 p{
   transform: rotate(-90deg);
+
 }
 
-.yaxis{
+.xaxis{
   
   
   width:60%;
-  background : purple;
+  padding-left:500px;
   flex-direction: column;
-  
+  font-size:20px;
  
 }
 </style>
@@ -301,7 +311,7 @@ var myChart = new Chart(ctx, {
   data: {
     labels: [<?php echo $chart_data;?>],
     datasets: [{
-      label: '# course',
+		label: '# course',
       data: [<?php echo $yaxis; ?>],
       backgroundColor: [
         'rgba(255, 99, 132, 0.2)',
@@ -336,7 +346,13 @@ var myChart = new Chart(ctx, {
   },
   options: {
     responsive: true,
-    maintainAspectRatio: false,
+	maintainAspectRatio: false,
+	title: {
+                      display: true,
+                      text:'COURSES IN TREND',
+                      fontSize:32,
+                      
+                  },
     scales: {
       xAxes: [{
         ticks: {
@@ -353,6 +369,113 @@ var myChart = new Chart(ctx, {
   }
 });
 </script>
+<?php
+$rt0 = "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));";
+$rt1 = "SELECT CTIME, COUNT(DISTINCT USER_ID) FROM course_log WHERE DATE(CTIME)>= CURDATE() - INTERVAL 7 DAY  GROUP BY DATE(CTIME);";
+$rt2 = "SELECT COUNT(DISTINCT USER_ID) FROM course_log WHERE DATE(CTIME)=CURDATE()";
+ $rest1=mysqli_query($conn,$rt0);
+ $rest1=mysqli_query($conn,$rt1);
+ $rest2=mysqli_query($conn,$rt2);
+    
+   $rowt2=mysqli_fetch_array($rest2);
+   $chart_data2='';
+   $logt='';
+      while($rowt=mysqli_fetch_array($rest1))
+     {
+        $timet= strtotime($rowt['CTIME']);
+        $ctt=$rowt['COUNT(DISTINCT USER_ID)'];
+    
+        $logt .= " '".date('d-m-y',$timet)."', ";
+        $chart_data2 .="$ctt,";
+        }             
+      var_export("[$chart_data2]", true);  
+?>
+  
+        <style>
+        .canvas{
+			margin-top:4%;
+   			 height:400px !important;
+			width:500px !important;
+   			 flex-direction: row ;
+			padding-right:0px;
+    		align-items: flex-end;
+    		flex-direction: row;
+    		flex-basis:80%;
+          
+          
+        }
+        
+        .container{
+			margin-right:10%;
+			margin-left: 335px;
+       		height: 67%;	
+            display: flex;
+            flex-wrap: wrap;
+            -webkit-box-shadow: -4px -16px 129px -30px rgba(0,0,0,0.75);
+            -moz-box-shadow: -4px -16px 129px -30px rgba(0,0,0,0.75);
+            box-shadow: -4px -16px 129px -30px rgba(0,0,0,0.75);
+            
+          
+        }
+        
+        .ylabel{
+        
+			padding: 200px 0px;
+  			font-size:20px;
+			flex-direction: row;
+			flex-wrap: wrap;
+			flex-basis: 10%;
+         
+        }
+        .ylabel p{
+          transform: rotate(-90deg);
+          font-size: 20px;
+        }
+        .xlabel{
+         
+			
+		padding-left:500px;
+		flex-direction: column;
+		font-size:20px;
+        
+        }
+     
+        
+        </style>
+      
+     
+         
+       
+            <script>
+              new Chart(document.getElementById("line-chart"), {
+                   type: "line",
+                   data: {
+                   labels: [<?php echo $logt; ?>],
+                   datasets: [
+                
+                   {
+                      data: [<?php echo $chart_data2;?>],
+                      label: "Course",
+                      borderColor: "#8e5ea2",
+                      backgroundColor: "rgba(54, 162, 235, 0.2)",
+                      fill: true,
+                      
+                   },
+                  ],
+                },
+                options: {
+              responsive: true,
+              maintainAspectRatio: false,
+             
+                    title: {
+                      display: true,
+                      text:' COURSE COMPLETION CHART',
+                      fontSize:32,
+                      
+                  },
+                },
+              });
+            </script>
 
 </body>
 </html>
